@@ -5,7 +5,7 @@ import { ForgotPasswordDto } from './dito/forgot-password.js';
 import { LoginAuthDto } from './dito/login-auth.js';
 import { ResetPasswordDto } from './dito/reset-password.js';
 
-@Controller()
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

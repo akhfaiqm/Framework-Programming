@@ -75,7 +75,7 @@ export class AuthService {
       throw new BadRequestException('Token di URL dan body tidak sama');
     }
 
-    if (data.newPassword !== data.confirmNewPassword) {
+    if (data.newPassword !== data.confirmPassword) {
       throw new BadRequestException(
         'newPassword dan confirmNewPassword tidak sama',
       );
