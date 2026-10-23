@@ -9,7 +9,7 @@ export class BooksController {
 
     // menampilka data buku
     @Get()
-    findAll(): any[] {
+    findAll(): any{
         return this.booksService.findAll();
     }
 
@@ -19,19 +19,19 @@ export class BooksController {
         return this.booksService.simpanData(createBookDto);
     }
 
-    // mengupdate data 
-    @Put(':id')
-    updateData(
-        @Param('id') id: string,
-        @Body() createBookDto: CreateBookDto): any {
-        return this.booksService.updateData(parseInt(id), createBookDto);
-    }
+    // // mengupdate data 
+    // @Put(':id')
+    // updateData(
+    //     @Param('id') id: string,
+    //     @Body() createBookDto: CreateBookDto): any {
+    //     return this.booksService.updateData(parseInt(id), createBookDto);
+    // }
 
-    // menghapus data
-    @Delete(':id')
-    deletData(
-        @Param('id') id: string): string {
-        return this.booksService.deletData(parseInt(id));
-    }
+    // // menghapus data
+    // @Delete(':id')
+    // deletData(
+    //     @Param('id') id: string): string {
+    //     return this.booksService.deletData(parseInt(id));
+    // }
     
 }
