@@ -1,5 +1,5 @@
 // TABLE : USERS (id, name, email, password)
-export class User {
+export class Auth {
   id: number;
 
   name: string;
