@@ -1,34 +1,61 @@
-import { Body, Controller, Param, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Post,
+  Put,
+  Param,
+} from '@nestjs/common';
+
 import { AuthService } from './auth.service.js';
-import { CreateAuthDto } from './dito/create-auth.js';
-import { ForgotPasswordDto } from './dito/forgot-password.js';
-import { LoginAuthDto } from './dito/login-auth.js';
-import { ResetPasswordDto } from './dito/reset-password.js';
+
+import {
+  RegisterAuthDto,
+  LoginAuthDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto/create-auth.js';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+  ) {}
 
+  // REGISTER
   @Post('register')
-  register(@Body() data: CreateAuthDto) {
-    return this.authService.register(data);
+  register(
+    @Body() registerDto: RegisterAuthDto,
+  ) {
+    return this.authService.register(registerDto);
   }
 
+  // LOGIN
   @Post('login')
-  login(@Body() data: LoginAuthDto) {
-    return this.authService.login(data);
+  login(
+    @Body() loginDto: LoginAuthDto,
+  ) {
+    return this.authService.login(loginDto);
   }
 
+  // FORGOT PASSWORD
   @Post('forgot-password')
-  forgotPassword(@Body() data: ForgotPasswordDto) {
-    return this.authService.forgotPassword(data);
+  forgotPassword(
+    @Body() forgotPasswordDto: ForgotPasswordDto,
+  ) {
+    return this.authService.forgotPassword(
+      forgotPasswordDto,
+    );
   }
 
+  // RESET PASSWORD
   @Put('reset-password/:token')
   resetPassword(
     @Param('token') token: string,
-    @Body() data: ResetPasswordDto,
+    @Body() resetPasswordDto: ResetPasswordDto,
   ) {
-    return this.authService.resetPassword(token, data);
+    return this.authService.resetPassword(
+      token,
+      resetPasswordDto,
+    );
   }
 }

@@ -1,102 +1,149 @@
+import { Injectable } from '@nestjs/common';
+import { Auth } from './entities/auth-entity.js';
 import {
-  BadRequestException,
-  Injectable,
-  NotFoundException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { CreateAuthDto } from './dito/create-auth.js';
-import { ForgotPasswordDto } from './dito/forgot-password.js';
-import { LoginAuthDto } from './dito/login-auth.js';
-import { ResetPasswordDto } from './dito/reset-password.js';
-import { User } from './entities/auth-entity.js';
+  RegisterAuthDto,
+  LoginAuthDto,
+  ForgotPasswordDto,
+  ResetPasswordDto,
+} from './dto/create-auth.js';
 
 @Injectable()
 export class AuthService {
-  private users: User[] = [];
-  private resetTokens = new Map<string, string>();
+  private users: Auth[] = [
+    {
+      id: 1,
+      name: 'Amelia',
+      email: 'ameliaaaa@gmail.com',
+      password: '123456',
+    },
+  ];
 
-  register(data: CreateAuthDto) {
-    if (data.password !== data.confirmPassword) {
-      throw new BadRequestException('Password dan confirmPassword tidak sama');
+  // Menyimpan token reset password sementara
+  private resetTokens: Map<string, string> = new Map();
+
+  // REGISTER
+  register(registerDto: RegisterAuthDto) {
+    const { name, email, password, confirmPassword } = registerDto;
+
+    // Validasi password
+    if (password !== confirmPassword) {
+      throw new Error('Password dan confirmPassword tidak sama');
     }
 
-    const emailAlreadyUsed = this.users.some(user => user.email === data.email);
-    if (emailAlreadyUsed) {
-      throw new BadRequestException('Email sudah terdaftar');
+    // Cek email sudah digunakan
+    const existingUser = this.users.find(
+      (user) => user.email === email,
+    );
+
+    if (existingUser) {
+      throw new Error('Email sudah terdaftar');
     }
 
-    const user: User = {
+    const newUser: Auth = {
       id: this.users.length + 1,
-      name: data.name,
-      email: data.email,
-      password: data.password,
+      name,
+      email,
+      password,
     };
 
-    this.users.push(user);
+    this.users.push(newUser);
 
     return {
       message: 'Register berhasil',
-      data: user,
+      data: {
+        id: newUser.id,
+        name: newUser.name,
+        email: newUser.email,
+      },
     };
   }
 
-  login(data: LoginAuthDto) {
+  // LOGIN
+  login(loginDto: LoginAuthDto) {
+    const { email, password } = loginDto;
+
     const user = this.users.find(
-      item => item.email === data.email && item.password === data.password,
+      (user) =>
+        user.email === email &&
+        user.password === password,
     );
 
     if (!user) {
-      throw new UnauthorizedException('Email atau password salah');
+      throw new Error('Email atau password salah');
     }
 
     return {
       message: 'Login berhasil',
-      data: user,
+      data: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
     };
   }
 
-  forgotPassword(data: ForgotPasswordDto) {
-    const user = this.users.find(item => item.email === data.email);
+  // FORGOT PASSWORD
+  forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
+    const { email } = forgotPasswordDto;
+
+    const user = this.users.find(
+      (user) => user.email === email,
+    );
+
     if (!user) {
-      throw new NotFoundException('Email tidak ditemukan');
+      throw new Error('Email tidak ditemukan');
     }
 
-    const token = `reset-token-${user.id}`;
-    this.resetTokens.set(token, user.email);
+    // Membuat token sederhana
+    const token =
+      Math.random().toString(36).substring(2) +
+      Date.now().toString(36);
+
+    this.resetTokens.set(token, email);
 
     return {
       message: 'Token reset password berhasil dibuat',
-      token,
+      token: token,
     };
   }
 
-  resetPassword(token: string, data: ResetPasswordDto) {
-    if (token !== data.token) {
-      throw new BadRequestException('Token di URL dan body tidak sama');
+  // RESET PASSWORD
+  resetPassword(
+    token: string,
+    resetPasswordDto: ResetPasswordDto,
+  ) {
+    const email = this.resetTokens.get(token);
+
+    if (!email) {
+      throw new Error('Token tidak valid atau sudah digunakan');
     }
 
-    if (data.newPassword !== data.confirmPassword) {
-      throw new BadRequestException(
+    const {
+      newPassword,
+      confirmNewPassword,
+    } = resetPasswordDto;
+
+    if (newPassword !== confirmNewPassword) {
+      throw new Error(
         'newPassword dan confirmNewPassword tidak sama',
       );
     }
 
-    const email = this.resetTokens.get(token);
-    if (!email) {
-      throw new BadRequestException('Token tidak valid');
+    const userIndex = this.users.findIndex(
+      (user) => user.email === email,
+    );
+
+    if (userIndex === -1) {
+      throw new Error('User tidak ditemukan');
     }
 
-    const user = this.users.find(item => item.email === email);
-    if (!user) {
-      throw new NotFoundException('User tidak ditemukan');
-    }
+    this.users[userIndex].password = newPassword;
 
-    user.password = data.newPassword;
+    // Token hanya bisa digunakan sekali
     this.resetTokens.delete(token);
 
     return {
       message: 'Password berhasil direset',
-      data: user,
     };
   }
 }
